@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <MadgwickAHRS_XY.h>
+#include <MadgwickAHRS-XY.h>
 #include <stdio.h>
 
 #ifndef DEBUG
@@ -24,7 +24,7 @@
 
 #define SAMPLEFREQ 50.0f
 #define CUTFREQ 4.0f
-#define ALPHA CUTFREQ/(CUTFREQ+SAMPLEFREQ)
+#define ALPHA CUTFREQ / (CUTFREQ + SAMPLEFREQ)
 #define LED_PIN 13 // (Arduino is 13, Teensy is 6)
 
 // variables
@@ -60,21 +60,23 @@ float meanAcc = 0, meanMagXY = 0;
 
 volatile bool readSensors = false;
 
-
 /*
  * Timer interrupt function on TIMER1 to alert it is time to read sensors
  */
-ISR (TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect)
+{
 	readSensors = true;
 }
 
-void onlineLowPass(const float lastVal[3], const float newVal[3], float out[3]) {
+void onlineLowPass(const float lastVal[3], const float newVal[3], float out[3])
+{
 	// use an online lowpass approximation
-	for(int I = 0; I<3; I++)
-		out[I] = ((1-ALPHA)*lastVal[I]+ALPHA*newVal[I]);
+	for (int I = 0; I < 3; I++)
+		out[I] = ((1 - ALPHA) * lastVal[I] + ALPHA * newVal[I]);
 }
 
-void setup() {
+void setup()
+{
 	// use multiple of base 2 for precision and faster computation
 	float warmup = 128.0;
 	float *aux;
@@ -93,7 +95,7 @@ void setup() {
 	// it's really up to you depending on your project)
 	Serial.begin(500000);
 	filter.begin(50);
-	delay(50);  // Give sensors enough time to start
+	delay(50); // Give sensors enough time to start
 
 	// initialize device
 	Serial.println(F("Initializing I2C devices..."));
@@ -102,11 +104,12 @@ void setup() {
 	gyro.initialize();
 	delay(50);
 	mag.initialize();
-	delay(50);  // Give sensors enough time to setup
+	delay(50); // Give sensors enough time to setup
 
 	// verify connection to sensors
 	Serial.println(F("Testing device connections..."));
-	if(accel.testConnection()){
+	if (accel.testConnection())
+	{
 		bitWrite(sensorStatus, 0, 1);
 		Serial.println(F("ADXL345 connection successful"));
 		// config ADXL
@@ -120,24 +123,29 @@ void setup() {
 		accel.setLowPowerEnabled(false);
 		// enable Measure flag
 		accel.setMeasureEnabled(true);
-	}else{
+	}
+	else
+	{
 		Serial.println(F("ADXL345 connection failed"));
 	}
 	// now test ITG3200
-	if(gyro.testConnection()){
+	if (gyro.testConnection())
+	{
 		bitWrite(sensorStatus, 2, 1);
 		Serial.println(F("ITG3200 connection successful"));
 		// config ITG3200
 		gyro.setDLPFBandwidth(ITG3200_DLPF_BW_10);
 		// drop first samples to achieve temperature stability;
-		for(I = 0; I<warmup; I++){
+		for (I = 0; I < warmup; I++)
+		{
 			gyro.getRotationX();
 			gyro.getRotationY();
 			gyro.getRotationZ();
 			delay(20);
 		}
 		// get offsets with warmup samples
-		for(I = 0; I<warmup; I++){
+		for (I = 0; I < warmup; I++)
+		{
 			gyro.getRotation(&gx, &gy, &gz);
 			gx_off += gx;
 			gy_off += gy;
@@ -145,21 +153,25 @@ void setup() {
 			delay(20);
 		}
 
-		razor.gyroSettings.gx_offset = gx_off/warmup;
-		razor.gyroSettings.gy_offset = gy_off/warmup;
-		razor.gyroSettings.gz_offset = gz_off/warmup;
-
-	}else{
+		razor.gyroSettings.gx_offset = gx_off / warmup;
+		razor.gyroSettings.gy_offset = gy_off / warmup;
+		razor.gyroSettings.gz_offset = gz_off / warmup;
+	}
+	else
+	{
 		Serial.println(F("ITG3200 connection failed"));
 	}
-	if(mag.testConnection()){
+	if (mag.testConnection())
+	{
 		bitWrite(sensorStatus, 1, 1);
 		Serial.println(F("HMC5843 connection successful"));
 		// set to 50Hz
 		mag.setDataRate(HMC5843_RATE_50);
 		// set continous mode
 		mag.setMode(HMC5843_MODE_CONTINUOUS);
-	}else{
+	}
+	else
+	{
 		Serial.println(F("HMC5843 connection failed"));
 	}
 	/***************************************************************************
@@ -167,36 +179,37 @@ void setup() {
 	 * and flashs built in led.
 	 * Also prints sensorStatus as binary output for debug
 	 **************************************************************************/
-	if(sensorStatus<7){
-		while(1){
+	if (sensorStatus < 7)
+	{
+		while (1)
+		{
 			Serial.print(F("Failed connection to some senrsor: sensorStatus="));
 			Serial.println(sensorStatus, BIN);
 			digitalWrite(LED_PIN, !digitalRead(LED_PIN));
 			delay(500);
-
 		}
 	}
 	// load values
 	razor.loadAccSettings(razor.idxAcc);
 	// razor.loadMagSettings(razor.idxMag);
 
-
 	/***************************************************************************
 	 * calculate meanAcc and meanMag
 	 **************************************************************************/
-	for(I = 0; I<warmup; I++){
+	for (I = 0; I < warmup; I++)
+	{
 		accel.getAcceleration(&ax, &ay, &az);
 		mag.getHeading(&mx, &my, &mz);
 		razor.correctRawAcc(ax, ay, az);
 		razor.correctRawMag(mx, my, mz);
 		aux = razor.outputPacket.acc;
-		meanAcc += sqrtf(aux[0]*aux[0]+aux[1]*aux[1]+aux[2]*aux[2]);
+		meanAcc += sqrtf(aux[0] * aux[0] + aux[1] * aux[1] + aux[2] * aux[2]);
 		aux = razor.outputPacket.mag;
-		meanMagXY += sqrtf(aux[0]*aux[0]+aux[1]*aux[1]);
+		meanMagXY += sqrtf(aux[0] * aux[0] + aux[1] * aux[1]);
 		delay(20);
 	}
-	meanAcc = meanAcc/warmup;
-	meanMagXY = meanMagXY/warmup;
+	meanAcc = meanAcc / warmup;
+	meanMagXY = meanMagXY / warmup;
 
 #if DEBUG
 	DEBUG_MSG("meanAcc=");
@@ -217,22 +230,24 @@ void setup() {
 	// set compare match register for 50 Hz increments
 	OCR1A = 19999; // = 8000000 / (8 * 50) - 1 (must be <65536)
 	// turn on CTC mode
-	TCCR1B |= (1<<WGM12);
+	TCCR1B |= (1 << WGM12);
 	// Set CS12, CS11 and CS10 bits for 8 prescaler
-	TCCR1B |= (0<<CS12)|(1<<CS11)|(0<<CS10);
+	TCCR1B |= (0 << CS12) | (1 << CS11) | (0 << CS10);
 	// enable timer compare interrupt
-	TIMSK1 |= (1<<OCIE1A);
+	TIMSK1 |= (1 << OCIE1A);
 	// allow interrupts
 	sei();
 	//***************************************************************************
 }
 
-void loop() {
-	static float lastAcc[3] = { 0.0f, 0.0f, 0.0f };
-	static float lastGyro[3] = { 0.0f, 0.0f, 0.0f };
-	static float lastMag[3] = { 0.0f, 0.0f, 0.0f };
+void loop()
+{
+	static float lastAcc[3] = {0.0f, 0.0f, 0.0f};
+	static float lastGyro[3] = {0.0f, 0.0f, 0.0f};
+	static float lastMag[3] = {0.0f, 0.0f, 0.0f};
 	// Time to read the sensors again?
-	if(readSensors){
+	if (readSensors)
+	{
 		accel.getAcceleration(&ax, &ay, &az);
 		gyro.getRotation(&gx, &gy, &gz);
 		mag.getHeading(&mx, &my, &mz);
@@ -253,16 +268,16 @@ void loop() {
 		DEBUG_MSG(lastMag[1]);
 		DEBUG_MSG(lastMag[2]);
 #endif
-//		filter.update(razor.outputPacket.gyro[0], razor.outputPacket.gyro[1],
-//				razor.outputPacket.gyro[2], razor.outputPacket.acc[0],
-//				razor.outputPacket.acc[1], razor.outputPacket.acc[2],
-//				razor.outputPacket.mag[0], razor.outputPacket.mag[1]);
-//		filter.updateGyro(razor.outputPacket.gyro[0],
-//						razor.outputPacket.gyro[1], razor.outputPacket.gyro[2]);
+		//		filter.update(razor.outputPacket.gyro[0], razor.outputPacket.gyro[1],
+		//				razor.outputPacket.gyro[2], razor.outputPacket.acc[0],
+		//				razor.outputPacket.acc[1], razor.outputPacket.acc[2],
+		//				razor.outputPacket.mag[0], razor.outputPacket.mag[1]);
+		//		filter.updateGyro(razor.outputPacket.gyro[0],
+		//						razor.outputPacket.gyro[1], razor.outputPacket.gyro[2]);
 		filter.updateIMU(razor.outputPacket.gyro[0],
-				razor.outputPacket.gyro[1], razor.outputPacket.gyro[2],
-				razor.outputPacket.acc[0],
-				razor.outputPacket.acc[1], razor.outputPacket.acc[2]);
+						 razor.outputPacket.gyro[1], razor.outputPacket.gyro[2],
+						 razor.outputPacket.acc[0],
+						 razor.outputPacket.acc[1], razor.outputPacket.acc[2]);
 		razor.outputPacket.euler[2] = filter.getPhi();
 		razor.outputPacket.euler[1] = filter.getTheta();
 		razor.outputPacket.euler[0] = filter.getPsi();
@@ -271,13 +286,12 @@ void loop() {
 #else
 		razor.sendPacket();
 #endif
-		memcpy(lastAcc, razor.outputPacket.acc, 3*sizeof(float));
-		memcpy(lastGyro, razor.outputPacket.gyro, 3*sizeof(float));
-		memcpy(lastMag, razor.outputPacket.mag, 3*sizeof(float));
+		memcpy(lastAcc, razor.outputPacket.acc, 3 * sizeof(float));
+		memcpy(lastGyro, razor.outputPacket.gyro, 3 * sizeof(float));
+		memcpy(lastMag, razor.outputPacket.mag, 3 * sizeof(float));
 		readSensors = false;
 	}
 #if DEBUG
 	delay(1000);
 #endif
 }
-
