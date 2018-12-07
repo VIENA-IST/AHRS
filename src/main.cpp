@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 #ifndef DEBUG
-#define DEBUG 0
+#define DEBUG 1
 #endif
 #if DEBUG
 #define DEBUG_MSG(...) Serial.println(__VA_ARGS__)
@@ -215,6 +215,14 @@ void setup()
 	DEBUG_MSG(meanAcc);
 	DEBUG_MSG("meanMagXY=");
 	DEBUG_MSG(meanMagXY);
+	// see setting applied to each sensor
+	DEBUG_MSG(F("Print Sensor settings"));
+	DEBUG_MSG(F("----Acc Settings----"));
+	razor.printAccSettings();
+	DEBUG_MSG(F("----Gyro Settings----"));
+	razor.printGyroSettings();
+	DEBUG_MSG(F("----Mag Settings----"));
+	razor.printMagSettings();
 #endif
 	digitalWrite(LED_PIN, 1);
 	/***************************************************************************
@@ -250,10 +258,19 @@ void loop()
 		accel.getAcceleration(&ax, &ay, &az);
 		gyro.getRotation(&gx, &gy, &gz);
 		mag.getHeading(&mx, &my, &mz);
-		razor.compensate_sensor_errors();
-		onlineLowPass(lastAcc, razor.outputPacket.acc, razor.outputPacket.acc);
-		onlineLowPass(lastGyro, razor.outputPacket.gyro, razor.outputPacket.gyro);
-		onlineLowPass(lastMag, razor.outputPacket.mag, razor.outputPacket.mag);
+		razor.outputPacket.acc[0] = (double) ax;
+		razor.outputPacket.acc[1] = (double) ay;
+		razor.outputPacket.acc[2] = (double) az;
+		razor.outputPacket.gyro[0] = (double) gx;
+		razor.outputPacket.gyro[1] = (double) gy;
+		razor.outputPacket.gyro[2] = (double) gz;
+		razor.outputPacket.mag[0] = (double) mx;
+		razor.outputPacket.mag[1] = (double) my;
+		razor.outputPacket.mag[2] = (double) mz;
+		// razor.compensate_sensor_errors();
+		// onlineLowPass(lastAcc, razor.outputPacket.acc, razor.outputPacket.acc);
+		// onlineLowPass(lastGyro, razor.outputPacket.gyro, razor.outputPacket.gyro);
+		// onlineLowPass(lastMag, razor.outputPacket.mag, razor.outputPacket.mag);
 #if DEBUG
 		DEBUG_MSG(lastAcc[0]);
 		DEBUG_MSG(lastAcc[1]);
@@ -269,23 +286,25 @@ void loop()
 		//				razor.outputPacket.gyro[2], razor.outputPacket.acc[0],
 		//				razor.outputPacket.acc[1], razor.outputPacket.acc[2],
 		//				razor.outputPacket.mag[0], razor.outputPacket.mag[1]);
-		//		filter.updateGyro(razor.outputPacket.gyro[0],
-		//						razor.outputPacket.gyro[1], razor.outputPacket.gyro[2]);
-		filter.updateIMU(razor.outputPacket.gyro[0],
-						 razor.outputPacket.gyro[1], razor.outputPacket.gyro[2],
-						 razor.outputPacket.acc[0],
-						 razor.outputPacket.acc[1], razor.outputPacket.acc[2]);
-		razor.outputPacket.euler[2] = filter.getPhi();
-		razor.outputPacket.euler[1] = filter.getTheta();
-		razor.outputPacket.euler[0] = filter.getPsi();
+		// filter.updateGYRO(razor.outputPacket.gyro[0],
+		//				razor.outputPacket.gyro[1], razor.outputPacket.gyro[2]);
+		// filter.updateIMU(razor.outputPacket.gyro[0],
+		// 				 razor.outputPacket.gyro[1], razor.outputPacket.gyro[2],
+		// 				 razor.outputPacket.acc[0],
+		// 				 razor.outputPacket.acc[1], razor.outputPacket.acc[2]);
+		//filter.updateMAG(razor.outputPacket.gyro[0], razor.outputPacket.gyro[1], razor.outputPacket.gyro[2],
+		//						razor.outputPacket.mag[0], razor.outputPacket.mag[1]);
+		// razor.outputPacket.euler[2] = filter.getPhi();
+		// razor.outputPacket.euler[1] = filter.getTheta();
+		// razor.outputPacket.euler[0] = filter.getPsi();
 #if DEBUG
 		razor.printPacket();
 #else
 		razor.sendPacket();
 #endif
-		memcpy(lastAcc, razor.outputPacket.acc, 3 * sizeof(float));
-		memcpy(lastGyro, razor.outputPacket.gyro, 3 * sizeof(float));
-		memcpy(lastMag, razor.outputPacket.mag, 3 * sizeof(float));
+		memcpy(lastAcc, razor.outputPacket.acc, 3 * sizeof(double));
+		memcpy(lastGyro, razor.outputPacket.gyro, 3 * sizeof(double));
+		memcpy(lastMag, razor.outputPacket.mag, 3 * sizeof(double));
 		readSensors = false;
 	}
 #if DEBUG
