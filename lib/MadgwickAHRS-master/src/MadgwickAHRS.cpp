@@ -46,7 +46,7 @@ Madgwick::Madgwick()
 	anglesComputed = 0;
 	yaw = 0.0f;
 	pitch = 0.0f;
-	roll = 0.0f
+	roll = 0.0f;
 }
 
 // Update: uses both sensor readings, the magnetometer and the
