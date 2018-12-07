@@ -68,7 +68,7 @@ ISR(TIMER1_COMPA_vect)
 	readSensors = true;
 }
 
-void onlineLowPass(const float lastVal[3], const float newVal[3], float out[3])
+void onlineLowPass(const double lastVal[3], const double newVal[3], double out[3])
 {
 	// use an online lowpass approximation
 	for (int I = 0; I < 3; I++)
@@ -79,7 +79,7 @@ void setup()
 {
 	// use multiple of base 2 for precision and faster computation
 	float warmup = 128.0;
-	float *aux;
+	double *aux;
 	// drop I samples or average I samples
 	int I;
 	int gx_off = 0, gy_off = 0, gz_off = 0; //temp to store offsets
@@ -200,8 +200,7 @@ void setup()
 	{
 		accel.getAcceleration(&ax, &ay, &az);
 		mag.getHeading(&mx, &my, &mz);
-		razor.correctRawAcc(ax, ay, az);
-		razor.correctRawMag(mx, my, mz);
+		razor.compensate_sensor_errors();
 		aux = razor.outputPacket.acc;
 		meanAcc += sqrtf(aux[0] * aux[0] + aux[1] * aux[1] + aux[2] * aux[2]);
 		aux = razor.outputPacket.mag;
@@ -242,18 +241,16 @@ void setup()
 
 void loop()
 {
-	static float lastAcc[3] = {0.0f, 0.0f, 0.0f};
-	static float lastGyro[3] = {0.0f, 0.0f, 0.0f};
-	static float lastMag[3] = {0.0f, 0.0f, 0.0f};
+	static double lastAcc[3] = {0.0f, 0.0f, 0.0f};
+	static double lastGyro[3] = {0.0f, 0.0f, 0.0f};
+	static double lastMag[3] = {0.0f, 0.0f, 0.0f};
 	// Time to read the sensors again?
 	if (readSensors)
 	{
 		accel.getAcceleration(&ax, &ay, &az);
 		gyro.getRotation(&gx, &gy, &gz);
 		mag.getHeading(&mx, &my, &mz);
-		razor.correctRawAcc(ax, ay, az);
-		razor.correctRawGyro(gx, gy, gz);
-		razor.correctRawMag(mx, my, mz);
+		razor.compensate_sensor_errors();
 		onlineLowPass(lastAcc, razor.outputPacket.acc, razor.outputPacket.acc);
 		onlineLowPass(lastGyro, razor.outputPacket.gyro, razor.outputPacket.gyro);
 		onlineLowPass(lastMag, razor.outputPacket.mag, razor.outputPacket.mag);

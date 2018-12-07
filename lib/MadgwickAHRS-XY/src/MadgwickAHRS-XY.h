@@ -14,8 +14,8 @@
 // 02/10/2011	SOH Madgwick	Optimised for reduced CPU load
 //
 //=============================================================================================
-#ifndef MadgwickAHRS_h
-#define MadgwickAHRS_h
+#ifndef MadgwickAHRS_XY_h
+#define MadgwickAHRS_XY_h
 #include <math.h>
 
 //--------------------------------------------------------------------------------------------
@@ -33,6 +33,11 @@ class Madgwick
     float phi;
     float theta;
     float psi;
+	//threasholds to detect disturbances in acc or mag
+	float magMin;
+	float magMax;
+	float accMin;
+	float accMax;
     char anglesComputed;
     void computeAngles();
 
@@ -41,13 +46,18 @@ class Madgwick
   public:
     Madgwick(void);
     void begin(float sampleFrequency) { invSampleFreq = 1.0f / sampleFrequency; }
-    void update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my);
+	// called if all measurements are available
+	void update(float gx, float gy, float gz, float ax, float ay, float az,
+			float mx, float my);
+	// called if magnetometer is not available or out of range
     void updateIMU(float gx, float gy, float gz, float ax, float ay, float az);
-    void updateMAG(float gx, float gy, float gz, float mx, float my);
-    void updateGYRO(float gx, float gy, float gz);
-    //float getPitch(){return atan2f(2.0f * q2 * q3 - 2.0f * q0 * q1, 2.0f * q0 * q0 + 2.0f * q3 * q3 - 1.0f);};
-    //float getRoll(){return -1.0f * asinf(2.0f * q1 * q3 + 2.0f * q0 * q2);};
-    //float getYaw(){return atan2f(2.0f * q1 * q2 - 2.0f * q0 * q3, 2.0f * q0 * q0 + 2.0f * q1 * q1 - 1.0f);};
+
+	// called if accelerometer is out of range
+	void updateMAG(float gx, float gy, float gz, float mx, float my);
+
+	// estimate based on gyroscope only
+	void updateGYRO(float gx, float gy, float gz);
+
     float getPhi()
     {
         if (!anglesComputed)

@@ -141,42 +141,42 @@ void Razor::compensate_sensor_errors() {
 
 void Razor::printAccSettings() {
 	struct AdxlSettings curr = getAccSettings();
-	Serial.println("..............ACC OFFSETS...............");
-	Serial.print("ax_offset: ");
+	Serial.println(F("..............ACC OFFSETS..............."));
+	Serial.print(F("ax_offset: "));
 	Serial.println(curr.ax_offset);
-	Serial.print("ay_offset: ");
+	Serial.print(F("ay_offset: "));
 	Serial.println(curr.ay_offset);
-	Serial.print("az_offset: ");
+	Serial.print(F("az_offset: "));
 	Serial.println(curr.az_offset);
-	Serial.println("..............ACC SCALES...............");
-	Serial.print("ax_scale: ");
+	Serial.println(F("..............ACC SCALES..............."));
+	Serial.print(F("ax_scale: "));
 	Serial.println(curr.ax_scale);
-	Serial.print("ay_scale: ");
+	Serial.print(F("ay_scale: "));
 	Serial.println(curr.ay_scale);
-	Serial.print("az_scale: ");
+	Serial.print(F("az_scale: "));
 	Serial.println(curr.az_scale);
 }
 void Razor::printGyroSettings() {
 	struct Itg3200Settings curr = getGyroSettings();
-	Serial.println("..............GYRO OFFSETS...............");
-	Serial.print("gx_offset: ");
+	Serial.println(F("..............GYRO OFFSETS..............."));
+	Serial.print(F("gx_offset: "));
 	Serial.println(curr.gx_offset);
-	Serial.print("gy_offset: ");
+	Serial.print(F("gy_offset: "));
 	Serial.println(curr.gy_offset);
-	Serial.print("gz_offset: ");
+	Serial.print(F("gz_offset: "));
 	Serial.println(curr.gz_offset);
 }
 void Razor::printMagSettings() {
 	struct Hmc5843Settings curr = getMagSettings();
 	int I;
-	Serial.println("..............MAG OFFSETS...............");
-	Serial.print("mx_offset: ");
+	Serial.println(F("..............MAG OFFSETS..............."));
+	Serial.print(F("mx_offset: "));
 	Serial.println(curr.mx_offset);
-	Serial.print("my_offset: ");
+	Serial.print(F("my_offset: "));
 	Serial.println(curr.my_offset);
-	Serial.print("mz_offset: ");
+	Serial.print(F("mz_offset: "));
 	Serial.println(curr.mz_offset);
-	Serial.println("......MAG TRANSFORMATION MATRIX.........");
+	Serial.println(F("......MAG TRANSFORMATION MATRIX........."));
 	for (I = 0; I < 3; I++) {
 		Serial.print(curr.mTransform[I][0]);
 		Serial.print("\t");
@@ -187,7 +187,7 @@ void Razor::printMagSettings() {
 }
 void Razor::printPacket() {
 	struct dataFrame *packet = &this->outputPacket;
-	Serial.println("--------------Current packet-------------");
+	Serial.println(F("--------------Current packet-------------"));
 	Serial.println(packet->sync01, HEX);
 	Serial.println(packet->sync02, HEX);
 	Serial.println(packet->ID);
@@ -211,13 +211,13 @@ void Razor::printPacket() {
 	Serial.print(packet->mag[2]);
 	Serial.println('\t');
 	Serial.print(packet->euler[0]);
-	Serial.println('\t');
+	Serial.print('\t');
 	Serial.print(packet->euler[1]);
-	Serial.println('\t');
+	Serial.print('\t');
 	Serial.print(packet->euler[2]);
 	Serial.println('\t');
 	Serial.println(packet->crc8, HEX);
-	Serial.println("---------------------------------------");
+	Serial.println(F("---------------------------------------"));
 }
 
 void Razor::sendPacket() {

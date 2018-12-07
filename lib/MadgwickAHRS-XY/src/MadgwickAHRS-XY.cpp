@@ -20,8 +20,8 @@
 //-------------------------------------------------------------------------------------------
 // Header files
 
-#include "MadgwickAHRS.h"
 #include <math.h>
+#include <MadgwickAHRS-XY.h>
 
 //-------------------------------------------------------------------------------------------
 // Definitions
@@ -44,9 +44,13 @@ Madgwick::Madgwick()
 	q4 = 0.0f;
 	invSampleFreq = 1.0f / sampleFreqDef;
 	anglesComputed = 0;
-	yaw = 0.0f;
-	pitch = 0.0f;
-	roll = 0.0f;
+	psi = 0.0f;
+	theta = 0.0f;
+	phi = 0.0f;
+	magMin = 0.0f;
+	magMax = 0.0f;
+	accMin = 0.0f;
+	accMax = 0.0f;
 }
 
 // Update: uses both sensor readings, the magnetometer and the
@@ -356,8 +360,11 @@ float Madgwick::invSqrt(float x)
 
 void Madgwick::computeAngles()
 {
-	roll = atan2f(q1 * q2 + q3 * q4, 0.5f - q2 * q2 - q3 * q3);
-	pitch = asinf(-2.0f * (q2 * q4 - q1 * q3));
-	yaw = atan2f(q2 * q3 + q1 * q4, 0.5f - q3 * q3 - q4 * q4);
+//	roll = atan2f(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2);
+//	pitch = asinf(-2.0f * (q1*q3 - q0*q2));
+//	yaw = atan2f(q1*q2 + q0*q3, 0.5f - q2*q2 - q3*q3);
+	phi = atan2f(q1*q2+q3*q4, q1*q1+q4*q4-0.5f);
+	theta = asinf(-2.0f*(q2*q4-q1*q3));
+	psi = atan2f(q2*q3+q1*q4, q1*q1+q2*q2-0.5f);
 	anglesComputed = 1;
 }
