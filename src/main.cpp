@@ -8,13 +8,10 @@
 #include <MadgwickAHRS-XY.h>
 #include <stdio.h>
 
-#ifndef DEBUG
-#define DEBUG 1
-#endif
+#define DEBUG 0
 #if DEBUG
 #define DEBUG_MSG(...) Serial.println(__VA_ARGS__)
-#endif
-#ifndef DEBUG_MSG
+#else
 #define DEBUG_MSG(...)
 #endif
 
@@ -258,15 +255,15 @@ void loop()
 		accel.getAcceleration(&ax, &ay, &az);
 		gyro.getRotation(&gx, &gy, &gz);
 		mag.getHeading(&mx, &my, &mz);
-		razor.outputPacket.acc[0] = (double) ax;
-		razor.outputPacket.acc[1] = (double) ay;
-		razor.outputPacket.acc[2] = (double) az;
-		razor.outputPacket.gyro[0] = (double) gx;
-		razor.outputPacket.gyro[1] = (double) gy;
-		razor.outputPacket.gyro[2] = (double) gz;
-		razor.outputPacket.mag[0] = (double) mx;
-		razor.outputPacket.mag[1] = (double) my;
-		razor.outputPacket.mag[2] = (double) mz;
+		razor.outputPacket.acc[0] = (double)ax;
+		razor.outputPacket.acc[1] = (double)ay;
+		razor.outputPacket.acc[2] = (double)az;
+		razor.outputPacket.gyro[0] = (double)gx;
+		razor.outputPacket.gyro[1] = (double)gy;
+		razor.outputPacket.gyro[2] = (double)gz;
+		razor.outputPacket.mag[0] = (double)mx;
+		razor.outputPacket.mag[1] = (double)my;
+		razor.outputPacket.mag[2] = (double)mz;
 		// razor.compensate_sensor_errors();
 		// onlineLowPass(lastAcc, razor.outputPacket.acc, razor.outputPacket.acc);
 		// onlineLowPass(lastGyro, razor.outputPacket.gyro, razor.outputPacket.gyro);

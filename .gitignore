@@ -3,6 +3,5 @@
 .gcc-flags.json
 .piolibdeps
 
-\.idea/
-
-\.vscode/
+.idea/
+.vscode/
